@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abrazo de Aroma - Velas Artesanales</title>
+    <style>
+        /* ESTILOS GENERALES */
+        :root {
+            --color-primario: #8B7355;
+            --color-secundario: #D4B896;
+            --color-terciario: #F5E6D3;
+            --color-texto: #333333;
+            --color-fondo: #FFF9F0;
+            --color-error: #e74c3c;
+            --color-exito: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* MODAL DE ADMINISTRACIÓN */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .admin-modal.active {
+            display: flex;
+        }
+        
+        .admin-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--color-terciario);
+        }
+        
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .admin-tab.active {
+            border-bottom-color: var(--color-primario);
+            color: var(--color-primario);
+            font-weight: bold;
+        }
+        
+        .admin-content {
+            display: none;
+        }
+        
+        .admin-content.active {
+            display: block;
+        }
+        
+        .login-form, .product-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-admin {
+            background: var(--color-primario);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .btn-admin.secondary {
+            background: var(--color-secundario);
+        }
+        
+        .btn-admin.danger {
+            background: var(--color-error);
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .message.error {
+            background: #ffeaea;
+            color: var(--color-error);
+            display: block;
+        }
+        
+        .message.success {
+            background: #eaffea;
+            color: var(--color-exito);
+            display: block;
+        }
+        
+        .product-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        
+        .product-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        /* BOTÓN ADMIN FLOTANTE */
+        .admin-float-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--color-primario);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 999;
+            font-size: 20px;
+        }
+
+        /* HEADER */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--color-primario);
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: var(--color-secundario);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 25px;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+            color: var(--color-texto);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: var(--color-primario);
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--color-terciario);
+            border-radius: 20px;
+            padding: 5px 15px;
+            width: 300px;
+        }
+        
+        .search-bar input {
+            border: none;
+            background: transparent;
+            padding: 8px;
+            width: 100%;
+            outline: none;
+        }
+        
+        .search-bar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-primario);
+        }
+        
+        .social-icons {
+            display: flex;
+        }
+        
+        .social-icons a {
+            display: inline-block;
+            margin-left: 10px;
+            color: var(--color-primario);
+            font-size: 18px;
+            transition: transform 0.3s;
+        }
+        
+        .social-icons a:hover {
+            transform: translateY(-3px);
+        }
+        
+        /* HERO SECTION */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1585329063178-9a8dddb0216c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 100px 20px;
+            margin-bottom: 40px;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--color-primario);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--color-secundario);
+        }
+        
+        /* CATEGORÍAS */
+        .categories {
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: var(--color-primario);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--color-secundario);
+        }
+        
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .category-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .category-img {
+            height: 200px;
+            background-color: var(--color-terciario);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primario);
+            font-size: 60px;
+        }
+        
+        .category-info {
+            padding: 20px;
+        }
+        
+        .category-info h3 {
+            margin-bottom: 10px;
+            color: var(--color-primario);
+        }
+        
+        /* PRODUCTOS */
+        .products {
+            padding: 40px 0;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group label {
+            margin-right: 10px;
+            font-weight: 500;
+        }
+        
+        .filter-group select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background: white;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-img {
+            height: 200px;
+            background-color: var(--color-terciario);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-primario);
+            font-size: 40px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .product-info {
+            padding: 20px;
+        }
+        
+        .product-info h3 {
+            margin-bottom: 10px;
+            color: var(--color-primario);
+        }
+        
+        .price {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--color-primario);
+            margin-bottom: 15px;
+        }
+        
+        .product-contact {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .contact-btn {
+            background: var(--color-secundario);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .contact-btn:hover {
+            background: var(--color-primario);
+        }
+        
+        /* FORMULARIO DE CONTACTO */
+        .contact {
+            padding: 60px 0;
+            background: var(--color-terciario);
+        }
+        
+        .contact-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        
+        .contact-info h3 {
+            margin-bottom: 20px;
+            color: var(--color-primario);
+        }
+        
+        .contact-info p {
+            margin-bottom: 15px;
+        }
+        
+        .contact-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* FOOTER */
+        footer {
+            background: var(--color-primario);
+            color: white;
+            padding: 40px 0 20px;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-col h4 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        
+        .footer-col ul {
+            list-style: none;
+        }
+        
+        .footer-col ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-col ul li a {
+            color: var(--color-terciario);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-col ul li a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            nav ul {
+                margin-bottom: 15px;
+            }
+            
+            .search-bar {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 18px;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .admin-panel {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- BOTÓN FLOTANTE ADMIN -->
+    <div class="admin-float-btn" id="adminBtn">
+        <i class="fas fa-cog"></i>
+    </div>
+
+    <!-- MODAL DE ADMINISTRACIÓN -->
+    <div class="admin-modal" id="adminModal">
+        <div class="admin-panel">
+            <div class="admin-tabs">
+                <div class="admin-tab active" data-tab="login">Iniciar Sesión</div>
+                <div class="admin-tab" data-tab="products">Gestionar Productos</div>
+            </div>
+            
+            <!-- PESTAÑA LOGIN -->
+            <div class="admin-content active" id="login-tab">
+                <h3>Acceso Administrador</h3>
+                <div class="message" id="loginMessage"></div>
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Usuario:</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña:</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit" class="btn-admin">Ingresar</button>
+                </form>
+            </div>
+            
+            <!-- PESTAÑA GESTIÓN DE PRODUCTOS -->
+            <div class="admin-content" id="products-tab">
+                <h3>Gestión de Productos</h3>
+                <div class="message" id="productMessage"></div>
+                
+                <h4>Agregar/Editar Producto</h4>
+                <form class="product-form" id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="form-group">
+                        <label for="productName">Nombre:</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productPrice">Precio:</label>
+                        <input type="number" id="productPrice" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productCategory">Categoría:</label>
+                        <select id="productCategory" required>
+                            <option value="aromaticas">Velas Aromáticas</option>
+                            <option value="decorativas">Velas Decorativas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productImage">URL de la imagen:</label>
+                        <input type="text" id="productImage" placeholder="https://ejemplo.com/imagen.jpg">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn-admin" id="saveProductBtn">Guardar Producto</button>
+                        <button type="button" class="btn-admin secondary" id="clearFormBtn">Limpiar</button>
+                    </div>
+                </form>
+                
+                <h4>Productos Existentes</h4>
+                <div class="product-list" id="productList">
+                    <!-- Los productos se cargarán aquí dinámicamente -->
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" class="btn-admin danger" id="logoutBtn">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="container header-container">
+            <a href="#" class="logo">Abrazo de <span>Aroma</span></a>
+            
+            <nav>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#velas-aromaticas">Velas Aromáticas</a></li>
+                    <li><a href="#velas-decorativas">Velas Decorativas</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </nav>
+            
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar productos...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <h1>Velas Artesanales para tu Hogar</h1>
+            <p>Descubre nuestra colección única de velas aromáticas y decorativas, creadas con ingredientes naturales para transformar tus espacios.</p>
+            <a href="#velas-aromaticas" class="btn">Ver Productos</a>
+        </div>
+    </section>
+
+    <!-- CATEGORÍAS -->
+    <section class="categories">
+        <div class="container">
+            <h2 class="section-title">Nuestras Categorías</h2>
+            <div class="category-grid">
+                <div class="category-card">
+                    <div class="category-img">
+                        <i class="fas fa-spa"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Velas Aromáticas</h3>
+                        <p>Fragancias naturales que relajan y armonizan tu espacio.</p>
+                        <a href="#velas-aromaticas" class="btn" style="margin-top: 15px; padding: 8px 20px;">Ver Más</a>
+                    </div>
+                </div>
+                
+                <div class="category-card">
+                    <div class="category-img">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Velas Decorativas</h3>
+                        <p>Diseños únicos que complementan la decoración de tu hogar.</p>
+                        <a href="#velas-decorativas" class="btn" style="margin-top: 15px; padding: 8px 20px;">Ver Más</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VELAS AROMÁTICAS -->
+    <section class="products" id="velas-aromaticas">
+        <div class="container">
+            <h2 class="section-title">Velas Aromáticas</h2>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="sort">Ordenar por:</label>
+                    <select id="sort">
+                        <option>Más populares</option>
+                        <option>Precio: menor a mayor</option>
+                        <option>Precio: mayor a menor</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="aroma">Filtrar por aroma:</label>
+                    <select id="aroma">
+                        <option>Todos los aromas</option>
+                        <option>Lavanda</option>
+                        <option>Vainilla</option>
+                        <option>Canela</option>
+                        <option>Cítricos</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="product-grid" id="aromaticas-grid">
+                <!-- Los productos de velas aromáticas se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- VELAS DECORATIVAS -->
+    <section class="products" id="velas-decorativas">
+        <div class="container">
+            <h2 class="section-title">Velas Decorativas</h2>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="sort2">Ordenar por:</label>
+                    <select id="sort2">
+                        <option>Más populares</option>
+                        <option>Precio: menor a mayor</option>
+                        <option>Precio: mayor a menor</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="style">Filtrar por estilo:</label>
+                    <select id="style">
+                        <option>Todos los estilos</option>
+                        <option>Moderno</option>
+                        <option>Rústico</option>
+                        <option>Minimalista</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="product-grid" id="decorativas-grid">
+                <!-- Los productos de velas decorativas se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="contact" id="contacto">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>¡Hablemos!</h3>
+                    <p>¿Tienes preguntas sobre nuestros productos? ¿Quieres hacer un pedido especial? No dudes en contactarnos.</p>
+                    <p>Te responderemos a la brevedad posible.</p>
+                    
+                    <div class="social-icons" style="margin-top: 20px;">
+                        <a href="#" style="color: var(--color-primario); font-size: 24px; margin-right: 15px;">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" style="color: var(--color-primario); font-size: 24px; margin-right: 15px;">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        <a href="#" style="color: var(--color-primario); font-size: 24px;">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Nombre</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Mensaje</label>
+                            <textarea id="message" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="width: 100%;">Enviar Mensaje</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-col">
+                    <h4>Abrazo de Aroma</h4>
+                    <p>Velas artesanales creadas con amor para transformar tus espacios.</p>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Categorías</h4>
+                    <ul>
+                        <li><a href="#velas-aromaticas">Velas Aromáticas</a></li>
+                        <li><a href="#velas-decorativas">Velas Decorativas</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
+                        <li><a href="#"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
+                        <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Abrazo de Aroma. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // CONFIGURACIÓN DE ADMINISTRADOR
+        const ADMIN_CONFIG = {
+            username: "admin",
+            password: "abrazo123" // Puedes cambiar esta contraseña
+        };
+
+        // DATOS INICIALES DE PRODUCTOS
+        let products = JSON.parse(localStorage.getItem('abrazo_aroma_products')) || [
+            {
+                id: 1,
+                name: "Vela Aromática Lavanda",
+                price: 25000,
+                category: "aromaticas",
+                image: ""
+            },
+            {
+                id: 2,
+                name: "Vela Aromática Vainilla",
+                price: 22000,
+                category: "aromaticas",
+                image: ""
+            },
+            {
+                id: 3,
+                name: "Vela Decorativa Geométrica",
+                price: 35000,
+                category: "decorativas",
+                image: ""
+            },
+            {
+                id: 4,
+                name: "Vela Decorativa Floral",
+                price: 32000,
+                category: "decorativas",
+                image: ""
+            }
+        ];
+
+        let isLoggedIn = false;
+        let editingProductId = null;
+
+        // ELEMENTOS DEL DOM
+        const adminBtn = document.getElementById('adminBtn');
+        const adminModal = document.getElementById('adminModal');
+        const adminTabs = document.querySelectorAll('.admin-tab');
+        const adminContents = document.querySelectorAll('.admin-content');
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
+        const productForm = document.getElementById('productForm');
+        const productMessage = document.getElementById('productMessage');
+        const productList = document.getElementById('productList');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const clearFormBtn = document.getElementById('clearFormBtn');
+        const aromaticasGrid = document.getElementById('aromaticas-grid');
+        const decorativasGrid = document.getElementById('decorativas-grid');
+
+        // FUNCIONES PRINCIPALES
+        function init() {
+            loadProducts();
+            setupEventListeners();
+            renderProducts();
+        }
+
+        function setupEventListeners() {
+            // Botón admin flotante
+            adminBtn.addEventListener('click', toggleAdminModal);
+            
+            // Tabs del admin
+            adminTabs.forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            
+            // Formularios
+            loginForm.addEventListener('submit', handleLogin);
+            productForm.addEventListener('submit', handleProductSave);
+            logoutBtn.addEventListener('click', handleLogout);
+            clearFormBtn.addEventListener('click', clearProductForm);
+            
+            // Cerrar modal al hacer click fuera
+            adminModal.addEventListener('click', (e) => {
+                if (e.target === adminModal) {
+                    toggleAdminModal();
+                }
+            });
+            
+            // Formulario de contacto
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('¡Gracias por tu mensaje! Te contactaremos pronto.');
+                this.reset();
+            });
+            
+            // Botones de contacto en productos
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('contact-btn')) {
+                    alert('Serás redirigido a nuestras redes sociales para contactarnos.');
+                }
+            });
+            
+            // Búsqueda
+            document.querySelector('.search-bar button').addEventListener('click', handleSearch);
+            document.querySelector('.search-bar input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleSearch();
+            });
+        }
+
+        function toggleAdminModal() {
+            adminModal.classList.toggle('active');
+            if (!adminModal.classList.contains('active')) {
+                clearProductForm();
+            }
+        }
+
+        function switchTab(tabName) {
+            // Actualizar tabs activos
+            adminTabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+            
+            // Actualizar contenidos activos
+            adminContents.forEach(content => {
+                content.classList.toggle('active', content.id === `${tabName}-tab`);
+            });
+            
+            // Si estamos en la pestaña de productos y estamos logueados, cargar la lista
+            if (tabName === 'products' && isLoggedIn) {
+                renderProductList();
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_CONFIG.username && password === ADMIN_CONFIG.password) {
+                isLoggedIn = true;
+                showMessage(loginMessage, '¡Bienvenido! Sesión iniciada correctamente.', 'success');
+                switchTab('products');
+                loginForm.reset();
+            } else {
+                showMessage(loginMessage, 'Usuario o contraseña incorrectos.', 'error');
+            }
+        }
+
+        function handleLogout() {
+            isLoggedIn = false;
+            switchTab('login');
+            clearProductForm();
+            showMessage(productMessage, 'Sesión cerrada correctamente.', 'success');
+            setTimeout(() => {
+                productMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function handleProductSave(e) {
+            e.preventDefault();
+            
+            if (!isLoggedIn) {
+                showMessage(productMessage, 'Debes iniciar sesión para gestionar productos.', 'error');
+                return;
+            }
+            
+            const productData = {
+                name: document.getElementById('productName').value,
+                price: parseInt(document.getElementById('productPrice').value),
+                category: document.getElementById('productCategory').value,
+                image: document.getElementById('productImage').value
+            };
+            
+            if (editingProductId) {
+                // Editar producto existente
+                const index = products.findIndex(p => p.id === editingProductId);
+                if (index !== -1) {
+                    products[index] = { ...products[index], ...productData };
+                    showMessage(productMessage, 'Producto actualizado correctamente.', 'success');
+                }
+            } else {
+                // Agregar nuevo producto
+                const newProduct = {
+                    id: Date.now(), // ID único basado en timestamp
+                    ...productData
+                };
+                products.push(newProduct);
+                showMessage(productMessage, 'Producto agregado correctamente.', 'success');
+            }
+            
+            saveProducts();
+            renderProductList();
+            renderProducts();
+            clearProductForm();
+        }
+
+        function clearProductForm() {
+            productForm.reset();
+            document.getElementById('productId').value = '';
+            editingProductId = null;
+            document.getElementById('saveProductBtn').textContent = 'Guardar Producto';
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productCategory').value = product.category;
+                document.getElementById('productImage').value = product.image || '';
+                
+                editingProductId = id;
+                document.getElementById('saveProductBtn').textContent = 'Actualizar Producto';
+            }
+        }
+
+        function deleteProduct(id) {
+            if (!isLoggedIn) {
+                showMessage(productMessage, 'Debes iniciar sesión para eliminar productos.', 'error');
+                return;
+            }
+            
+            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                products = products.filter(p => p.id !== id);
+                saveProducts();
+                renderProductList();
+                renderProducts();
+                showMessage(productMessage, 'Producto eliminado correctamente.', 'success');
+            }
+        }
+
+        function renderProductList() {
+            if (!isLoggedIn) return;
+            
+            productList.innerHTML = '';
+            
+            if (products.length === 0) {
+                productList.innerHTML = '<p>No hay productos registrados.</p>';
+                return;
+            }
+            
+            products.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.innerHTML = `
+                    <div>
+                        <strong>${product.name}</strong><br>
+                        <small>$${product.price.toLocaleString()} - ${product.category === 'aromaticas' ? 'Aromáticas' : 'Decorativas'}</small>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn-admin secondary" onclick="editProduct(${product.id})">Editar</button>
+                        <button class="btn-admin danger" onclick="deleteProduct(${product.id})">Eliminar</button>
+                    </div>
+                `;
+                productList.appendChild(productItem);
+            });
+        }
+
+        function renderProducts() {
+            // Limpiar grids
+            aromaticasGrid.innerHTML = '';
+            decorativasGrid.innerHTML = '';
+            
+            // Renderizar productos en sus categorías
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                const imageContent = product.image 
+                    ? `<div class="product-img" style="background-image: url('${product.image}')"></div>`
+                    : `<div class="product-img"><i class="fas fa-cube"></i></div>`;
+                
+                productCard.innerHTML = `
+                    ${imageContent}
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <p class="price">$${product.price.toLocaleString()}</p>
+                        <div class="product-contact">
+                            <button class="contact-btn">Contactar</button>
+                            <div class="social-icons">
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-whatsapp"></i></a>
+                                <a href="#"><i class="fab fa-facebook"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (product.category === 'aromaticas') {
+                    aromaticasGrid.appendChild(productCard);
+                } else {
+                    decorativasGrid.appendChild(productCard);
+                }
+            });
+        }
+
+        function handleSearch() {
+            const searchTerm = document.querySelector('.search-bar input').value;
+            if (searchTerm.trim() !== '') {
+                alert('Buscando: ' + searchTerm);
+                // Aquí iría la lógica de búsqueda real
+            }
+        }
+
+        function showMessage(element, text, type) {
+            element.textContent = text;
+            element.className = `message ${type}`;
+            element.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function saveProducts() {
+            localStorage.setItem('abrazo_aroma_products', JSON.stringify(products));
+        }
+
+        function loadProducts() {
+            const saved = localStorage.getItem('abrazo_aroma_products');
+            if (saved) {
+                products = JSON.parse(saved);
+            }
+        }
+
+        // INICIALIZAR LA APLICACIÓN
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
